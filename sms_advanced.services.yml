@@ -1,0 +1,8 @@
+services:
+  sender_id_filter:
+    class: Drupal\sms_advanced\Utility\SenderIdFilter
+    arguments: ['@config.factory']
+
+  sms_provider.advanced:
+    class: Drupal\sms_advanced\Provider\AdvancedSmsProvider
+    arguments: ['@plugin.manager.sms_gateway', '@module_handler']

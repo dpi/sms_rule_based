@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ * Provides advanced bulk sms site management functionality.
+ */
+
+include 'sms_advanced.queue.inc';
+include 'sms_advanced.sender_id_block.inc';
+
+use Drupal\sms\Message\SmsMessageInterface;
+use Drupal\sms_advanced\Provider\AdvancedSmsProvider;
+use \Drupal\sms_advanced\Utility\AdvancedRouting;
+
+/**
+ * Implements hook_theme().
+ */
+function sms_advanced_theme($existing, $type, $theme, $path) {
+  $items['sms_advanced_routing_rules'] = array(
+    'variables' => array('ruleset' => NULL),
+  );
+
+  return $items;
+}
+
+/**
+ * Pre-process function for sms_advanced_routing_rule.
+ */
+function sms_advanced_preprocess_sms_advanced_routing_rules(&$variables) {
+  $variables['long_ops'] = AdvancedRouting::getLongOpTypes();
+}
+
+/**
+ * Send sms through sms framework.
+ *
+ * This function implements invokes preprocess and postprocess hooks for prior
+ * to dispatching
+ *
+ * If any of the preprocess hooks returns FALSE, sending will be aborted, and
+ *   the postprocess hooks will not be called. This is designed to allow other
+ *   modules to abort or postpone sending. E.g. this hook is used to implement
+ *   scheduled / delayed sending and to prevent sending if credit is inadequate
+ *
+ * hooks:
+ *   hook_preprocess_sms_ui_send(&$sms, &$options)
+ * 	 hook_postprocess_sms_ui_send(&$sms, &$options)
+ *   post-process hooks will be invoked by _sms_advanced_process_send()
+ *
+ *
+ * @param array $sms An array containing information about the sms with the
+ * 	following standard keys:
+ * 		- sender: the sender id
+ * 		- message: the full text of the message
+ * 		- recipients: this is an array indexed by the destination numbers.
+ * 				Initially this array will be empty but as it passed through the sms
+ * 				sending process various key-values will be added to indicate status.
+ * 				Examples of key-values are 'delivery_status', 'gateway', 'message-id',
+ * 				etc.
+ * 		- hid: the id for this message in the history table
+ * 		- schedule: the schedule for sending this message
+ * 		- uid: the id of the user who sent this message
+ * 	This is not necessarily the format the information is stored in the database,
+ *  (as it may not be the most efficient), but during sms_load (upon which other
+ *  modules would be able to hook into, this information can be added)
+ * @param array $options Additional options not specifically associated with the
+ * 	message
+ * 		- cron: specifies that this is a cron job call some modules may need this
+ * 				information to determine how to behave
+ * 		- queue: specifies that this batch should be queued for send irrespective
+ * 				of other settings or number of recipients
+ *
+ * @return boolean
+ *   Boolean representing success or failure.
+ *
+ * @todo Need to decide if tokenization should take place here or before.
+ * @todo Recipient number sanitization should be done separately (provide helper
+ * 	function for that)
+ */
+function sms_advanced_send(SmsMessageInterface $sms, $options = array()) {
+  \Drupal::service('sms_provider.advanced')->send($sms, $options);
+}
+
+/**
+ * Sends processed sms.
+ * This function just dispatches the message using the configured routing algorithm
+ *
+ * @param array $sms @see comment {sms_advanced_send}
+ * @param array $options options
+ */
+function _sms_advanced_process_send(SmsMessageInterface $sms) {
+  return AdvancedSmsProvider::routeMessage($sms);
+}
+
+/**
+ * Transparent cache for $sms being dispatched after queuing
+ *
+ * Need this so that other scripts can access the status as dispatch is ongoing
+ * @param string $uuid
+ * @return Array
+ */
+function &_sms_ui_get_cached($uuid) {
+  if (!$cache = \Drupal::cache()->get('sms_ui_cache:' . $uuid)) {
+    $cache = (object) array();
+    // No cache found, so retrieve the data
+    // then add to the cache with expiration after 1 day
+    \Drupal::cache('cache')->set('sms_ui_cache:' . $uuid, $cache, time() + (60 * 60 * 24));
+  }
+  return $cache->data;
+}
+
+function _sms_ui_set_cached(&$sms) {
+  \Drupal::cache('cache')->set('sms_ui_cache:' . $sms->uuid, $sms, time() + (60 * 60 * 24));
+}

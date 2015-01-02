@@ -1,0 +1,48 @@
+sms_advanced.admin:
+  path: '/admin/config/sms_advanced'
+  defaults:
+    _title: 'SMS Advanced'
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+  requirements:
+    _permission: 'administer advanced routing'
+
+sms_advanced.admin_settings:
+  path: '/admin/config/sms_advanced/settings'
+  defaults:
+    _title: 'SMS Advanced Settings'
+    _form: '\Drupal\sms_advanced\Form\AdminSettingsForm'
+  requirements:
+    _permission: 'administer advanced routing'
+
+entity.sms_advanced_ruleset.list:
+  path: '/admin/config/sms_advanced/ruleset'
+  defaults:
+    _title: 'Routing Rulesets'
+    _entity_list: sms_advanced_ruleset
+  requirements:
+    _permission: 'administer advanced routing'
+
+entity.sms_advanced_ruleset.add_form:
+  path: '/admin/config/sms_advanced/ruleset/add'
+  defaults:
+    _title: 'Add Routing Ruleset'
+    _entity_form: sms_advanced_ruleset.default
+  requirements:
+    _permission: 'administer advanced routing'
+
+entity.sms_advanced_ruleset.edit_form:
+  path: '/admin/config/sms_advanced/ruleset/edit/{sms_advanced_ruleset}'
+  defaults:
+    _title: 'Routing rulesets (@ruleset_name)'
+#    _title_context: ''
+    _entity_form: sms_advanced_ruleset.default
+  requirements:
+    _permission: 'administer advanced routing'
+
+entity.sms_advanced_ruleset.delete_form:
+  path: '/admin/config/sms_advanced/ruleset/delete/{sms_advanced_ruleset}'
+  defaults:
+    _title: 'Delete ruleset (@ruleset_name)'
+    _entity_form: sms_advanced_ruleset.delete
+  requirements:
+    _permission: 'administer advanced routing'

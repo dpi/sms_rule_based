@@ -1,0 +1,5 @@
+entity.sms_advanced_ruleset.add_form:
+  title: 'Add Ruleset'
+  route_name: entity.sms_advanced_ruleset.add_form
+  appears_on:
+    - entity.sms_advanced_ruleset.list

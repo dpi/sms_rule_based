@@ -1,0 +1,6 @@
+# sms_advanced settings
+enable_advanced_routing: true
+dashboard: {}
+nav_bar: {}
+sender_id_security: {}
+queue: {}

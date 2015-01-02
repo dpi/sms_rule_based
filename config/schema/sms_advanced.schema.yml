@@ -1,0 +1,89 @@
+sms_advanced.settings:
+  type: config_object
+  label: Settings
+  mapping:
+    enable_advanced_routing:
+      type: boolean
+    dashboard:
+      type: sequence
+      label: 'Dashboard settings'
+    nav_bar:
+      type: sequence
+      label: 'Navigation bar settings'
+    sender_id_security:
+      type: mapping
+      label: 'Sender ID security settings'
+      mapping:
+        include_superuser:
+          type: boolean
+          label: 'Include superuser (user #1) in sender id blocking (for testing purposes)'
+        enabled:
+          type: string
+          label: 'Excluded sender ids'
+        included:
+          type: string
+          label: 'Sender ids allowed for specific users'
+    queue:
+      type: mapping
+      label: 'Queue settings'
+      mapping:
+        treshold:
+          type: integer
+          label: 'Maximum messages for which messages will not be queued'
+
+sms_advanced.ruleset.*:
+  type: config_entity
+  label: Advanced Routing Ruleset
+  mapping:
+    name:
+      type: string
+      label: "Ruleset name"
+      description: "The machine name of the advanced routing ruleset."
+    label:
+      type: label
+      label: "Ruleset label"
+      description: "The human-readable name of the advanced routing ruleset."
+    description:
+      type: string
+      label: "Ruleset description"
+      description: "A description of what the routing ruleset does."
+    weight:
+      type: float
+      label: "Ruleset weight"
+      description: "The weight of this routing ruleset in the stack of rulesets."
+    enabled:
+      type: boolean
+      label: "Enabled"
+      description: 'Whether this ruleset is enabled to run or not.'
+    rules:
+      type: sequence
+      label: 'Ruleset rules'
+      description: 'The list of rules in this ruleset.'
+      sequence:
+        - type: sms_advanced.ruleset_rule
+          label: 'Ruleset rule'
+    _ALL_TRUE_:
+      type: boolean
+      label: 'All conditions must be true'
+      description: 'All conditions must be true for ruleset to apply.'
+    gateway:
+      type: string
+      label: 'Gateway to route SMS'
+      description: 'Gateway to route SMS satisfying this ruleset'
+
+sms_advanced.ruleset_rule:
+  type: mapping
+  label: 'Advanced Routing Ruleset Rule'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Rule is enabled'
+    operator:
+      type: string
+      label: 'Operator'
+    value:
+      type: string
+      label: 'Value to be compared on the right side of the operator'
+    negate:
+      type: boolean
+      label: 'Negate the result if true'
