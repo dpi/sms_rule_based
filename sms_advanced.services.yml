@@ -1,8 +1,15 @@
 services:
-  sender_id_filter:
-    class: Drupal\sms_advanced\Utility\SenderIdFilter
+  sms_advanced.sender_id_filter:
+    class: \Drupal\sms_advanced\Utility\SenderIdFilter
     arguments: ['@config.factory']
 
-  sms_provider.advanced:
-    class: Drupal\sms_advanced\Provider\AdvancedSmsProvider
-    arguments: ['@plugin.manager.sms_gateway', '@module_handler']
+  sms_provider.rule_based:
+    class: \Drupal\sms_advanced\Provider\RuleBasedSmsProvider
+    arguments: ['@config.factory', '@module_handler']
+
+  sms_advanced.sms_router:
+    class: \Drupal\sms_advanced\RuleBasedSmsRouter
+
+  plugin.manager.sms_routing_rule:
+    class: \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginManager
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']

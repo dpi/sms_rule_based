@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\Tests\sms_advanced\Unit\Utility\AdvancedRoutingRulesTest
+ * Contains \Drupal\Tests\sms_advanced\Unit\Entity\SmsRoutingRulesetTest
  */
 
 namespace Drupal\Tests\sms_advanced\Unit\Utility;
@@ -14,15 +14,14 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeRepositoryInterface;
 use Drupal\sms\Message\SmsMessage;
-use Drupal\sms_advanced\Entity\AdvancedRoutingRuleset;
-use Drupal\sms_advanced\Utility\AdvancedRouting;
+use Drupal\sms_advanced\Entity\SmsRoutingRuleset;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * @coversDefaultClass \Drupal\sms_advanced\Utility\AdvancedRouting
+ * @coversDefaultClass \Drupal\sms_advanced\Entity\SmsRoutingRuleset
  * @group SMS Advanced
  */
-class AdvancedRoutingRulesTest  extends UnitTestCase {
+class SmsRoutingRulesetTest extends UnitTestCase {
 
   protected $entityStorage;
 
@@ -34,7 +33,7 @@ class AdvancedRoutingRulesTest  extends UnitTestCase {
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
     $entity_type_repository = $this->prophesize(EntityTypeRepositoryInterface::class);
     $entity_type_manager->getStorage(NULL)->willReturn($this->entityStorage);
-    $entity_type_repository->getEntityTypeFromClass(AdvancedRoutingRuleset::class)->willReturn(NULL);
+    $entity_type_repository->getEntityTypeFromClass(SmsRoutingRuleset::class)->willReturn(NULL);
 
     // Set up the container.
     $container = new ContainerBuilder();
@@ -57,12 +56,12 @@ class AdvancedRoutingRulesTest  extends UnitTestCase {
     $this->entityStorage->loadMultiple(NULL)->will(function() use ($rulesets) {
       $return_val = [];
       foreach ($rulesets as $name => $ruleset) {
-        $return_val[$name] = new AdvancedRoutingRuleset($ruleset, 'sms_advanced_ruleset');
+        $return_val[$name] = new SmsRoutingRuleset($ruleset, 'sms_advanced_ruleset');
       }
       return $return_val;
     });
     $sms = new SmsMessage('sender', $numbers, 'test message', [], 1);
-    $routing = AdvancedRouting::routeSmsRecipients($sms);
+    $routing = \Drupal\sms_advanced\AdvancedSmsRouting::routeSmsRecipients($sms);
     $this->assertEquals($routing['routes']['42tele'], $routed_array);
     $this->assertNotContains($routed_array[0], $routing['routes']['__default__']);
   }

@@ -7,12 +7,15 @@
 
 namespace Drupal\sms_advanced\Form;
 
-use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Config\Entity\DraggableListBuilder;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\sms\Entity\SmsGateway;
 
+/**
+ * @todo: Use the plugin display widgets to show the summary of the rules here.
+ */
 class AdvancedRulesetListForm extends DraggableListBuilder {
 
   /**
@@ -52,7 +55,7 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
         '#theme' => 'sms_advanced_routing_rules',
         '#ruleset' => $entity,
       ],
-      'gateway' => ['#markup' => $this->gatewayManager()->getGateway($entity->get('gateway'))->getLabel()],
+      'gateway' => ['#markup' => SmsGateway::load($entity->get('gateway'))->label()],
     ) + parent::buildRow($entity);
   }
 
@@ -74,12 +77,15 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
     $footer = array(
       array(
         t('Default Gateway'),
-        t('All sms that don\'t match above rules will go through the default.'),
-        $this->gatewayManager()->getDefaultGateway()->getLabel(),
-        \Drupal::l($this->t('change default gateway'),
-          new Url('sms.gateway_admin', [], [
-            'query' => ['destination' => UrlHelper::encodePath(\Drupal::request()->getPathInfo())],
-        ])),
+        t('All SMS that don\'t match above rules will go through the default.'),
+        $this->smsProvider()->getDefaultGateway()->label(),
+        [
+          'data' => [
+            '#type' => 'link',
+            '#title' => $this->t('change default gateway'),
+            '#url' => new Url('sms.settings', [], ['query' => ['destination' => \Drupal::destination()->get()]]),
+          ],
+        ],
       ),
     );
 
@@ -138,10 +144,10 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
   /**
    * Returns the SMS gateway manager.
    *
-   * @return \Drupal\sms\Gateway\SmsGatewayPluginManagerInterface
+   * @return \Drupal\sms_advanced\Provider\RuleBasedSmsProvider
    */
-  protected function gatewayManager() {
-    return \Drupal::service('plugin.manager.sms_gateway');
+  protected function smsProvider() {
+    return \Drupal::service('sms_provider.rule_based');
   }
 
 }

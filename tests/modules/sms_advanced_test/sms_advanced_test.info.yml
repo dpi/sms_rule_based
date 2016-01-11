@@ -1,0 +1,6 @@
+name: Advanced SMS Testing Module
+type: module
+description: Module for testing Advanced SMS features.
+package: Testing
+version: VERSION
+core: 8.x

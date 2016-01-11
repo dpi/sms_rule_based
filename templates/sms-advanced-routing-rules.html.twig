@@ -12,12 +12,12 @@
   <li class="sms-advanced routing-rule conjunction">
     {{ ruleset.get('_ALL_TRUE_') ? 'All rules must match'|t : 'Any rule may match'|t }}
   </li>
-  {% for key,rule in ruleset.get('rules') %}
+  {% for key,rule in ruleset.rules %}
   {% if rule.enabled %}
   <li class="sms-advanced routing-rule">
-    <span class="ruletype">{{ key }}:</span>
-    <span class="ruleop">{{ rule.negate ? 'not ' }}{{ long_ops[rule.operator] }}</span>
-    <span class="ruleval">{{ rule.value|replace(',', ', ') }}</span>
+    <span class="rule-label">{{ rule.label }}:</span>
+    <span class="rule-operator">{{ rule.negated ? 'not ' }}{{ long_ops[rule.operator] }}</span>
+    <span class="rule-operand">{{ rule.operand|replace(',', ', ') }}</span>
   </li>
   {% endif %}
   {% endfor %}
