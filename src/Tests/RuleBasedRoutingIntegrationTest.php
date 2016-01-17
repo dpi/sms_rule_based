@@ -2,29 +2,29 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Tests\AdvancedRoutingIntegrationTest
+ * Contains \Drupal\sms_rule_based\Tests\RuleBasedRoutingIntegrationTest
  */
 
-namespace Drupal\sms_advanced\Tests;
+namespace Drupal\sms_rule_based\Tests;
 
 use Drupal\Core\Url;
 use Drupal\simpletest\WebTestBase;
 
 /**
- * Integration tests for Advanced routing of SMS.
+ * Integration tests for rule-based routing of SMS.
  *
- * @group SMS Advanced
+ * @group SMS Rule Based
  */
-class AdvancedRoutingIntegrationTest extends WebTestBase {
+class RuleBasedRoutingIntegrationTest extends WebTestBase {
 
-  public static $modules = ['sms', 'sms_advanced'];
+  public static $modules = ['sms', 'sms_rule_based'];
 
-  public function testAdvancedRoutingRules() {
-    $user = $this->drupalCreateUser(['administer advanced routing']);
+  public function testRuleBasedRoutingRules() {
+    $user = $this->drupalCreateUser(['administer rule-based routing']);
     $this->drupalLogin($user);
-    $this->drupalGet(new Url('entity.sms_advanced_ruleset.list'));
+    $this->drupalGet(new Url('entity.sms_routing_ruleset.list'));
 
-    // Enable advanced routing.
+    // Enable rule-based routing.
     $this->drupalPostForm(NULL, ['enable' => TRUE], 'Save configuration');
 
     // Uncomment this when local task and local action block placement is
@@ -40,7 +40,7 @@ class AdvancedRoutingIntegrationTest extends WebTestBase {
       'rules[user][operator]' => 'EQ',
       'rules[user][value]' => $user->getUsername(),
     ];
-    $this->drupalPostForm(new Url('entity.sms_advanced_ruleset.add_form'), $edit, 'Save');
+    $this->drupalPostForm(new Url('entity.sms_routing_ruleset.add_form'), $edit, 'Save');
     $this->assertResponse(200);
 
     // Test that posting without rules causes validation errors.
@@ -50,7 +50,7 @@ class AdvancedRoutingIntegrationTest extends WebTestBase {
       'weight' => -2,
       'gateway' => 'log',
     ];
-    $this->drupalPostForm(new Url('entity.sms_advanced_ruleset.add_form'), $edit, 'Save');
+    $this->drupalPostForm(new Url('entity.sms_routing_ruleset.add_form'), $edit, 'Save');
     $this->assertText('There must be at least one condition chosen.');
   }
 

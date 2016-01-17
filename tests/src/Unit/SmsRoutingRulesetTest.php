@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\Tests\sms_advanced\Unit\Entity\SmsRoutingRulesetTest
+ * Contains \Drupal\Tests\sms_rule_based\Unit\SmsRoutingRulesetTest
  */
 
-namespace Drupal\Tests\sms_advanced\Unit\Utility;
+namespace Drupal\Tests\sms_rule_based\Unit;
 
 use Drupal\Component\Uuid\Php;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
@@ -13,15 +13,15 @@ use Drupal\Core\Entity\EntityManager;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeRepositoryInterface;
+use Drupal\KernelTests\KernelTestBase;
 use Drupal\sms\Message\SmsMessage;
-use Drupal\sms_advanced\Entity\SmsRoutingRuleset;
-use Drupal\Tests\UnitTestCase;
+use Drupal\sms_rule_based\Entity\SmsRoutingRuleset;
 
 /**
- * @coversDefaultClass \Drupal\sms_advanced\Entity\SmsRoutingRuleset
- * @group SMS Advanced
+ * @coversDefaultClass \Drupal\sms_rule_based\Entity\SmsRoutingRuleset
+ * @group SMS Rule based
  */
-class SmsRoutingRulesetTest extends UnitTestCase {
+class SmsRoutingRulesetTest extends KernelTestBase {
 
   protected $entityStorage;
 
@@ -48,25 +48,25 @@ class SmsRoutingRulesetTest extends UnitTestCase {
   }
 
   /**
-   * @dataProvider providerAdvancedRoutingRulesets
+   * @dataProvider providerRuleBasedRoutingRulesets
    */
-  public function testAdvancedRoutingRulesets(array $rulesets, array $numbers, array $routed_array) {
+  public function testRuleBasedRoutingRulesets(array $rulesets, array $numbers, array $routed_array) {
     // @todo Need to refactor this test method signature to do more rulesets.
     // Set up return value for entity storage stub.
     $this->entityStorage->loadMultiple(NULL)->will(function() use ($rulesets) {
       $return_val = [];
       foreach ($rulesets as $name => $ruleset) {
-        $return_val[$name] = new SmsRoutingRuleset($ruleset, 'sms_advanced_ruleset');
+        $return_val[$name] = new SmsRoutingRuleset($ruleset, 'sms_routing_ruleset');
       }
       return $return_val;
     });
     $sms = new SmsMessage('sender', $numbers, 'test message', [], 1);
-    $routing = \Drupal\sms_advanced\AdvancedSmsRouting::routeSmsRecipients($sms);
+    $routing = \Drupal\sms_rule_based\RuleBasedRouting::routeSmsRecipients($sms);
     $this->assertEquals($routing['routes']['42tele'], $routed_array);
     $this->assertNotContains($routed_array[0], $routing['routes']['__default__']);
   }
 
-  public function providerAdvancedRoutingRulesets() {
+  public function providerRuleBasedRoutingRulesets() {
     return [
       [[$this->rulesets['cdma']], ['2348191234500', '2348101234500', '2348171234500', '2348031234500'], ['2348191234500']],
     ];

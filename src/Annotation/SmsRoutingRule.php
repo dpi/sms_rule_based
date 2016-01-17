@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Annotation\SmsRoutingRule.
+ * Contains \Drupal\sms_rule_based\Annotation\SmsRoutingRule.
  */
 
-namespace Drupal\sms_advanced\Annotation;
+namespace Drupal\sms_rule_based\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
 

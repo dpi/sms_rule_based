@@ -1,20 +1,20 @@
 {#
 /**
  * @file
- * sms-advanced-routing-rules.html.twig
+ * sms-rule-based-routing-rules.html.twig
  *
- * Advanced routing rule formatting template.
+ * Rule-based routing rule formatting template.
  *
  * @todo: the |replace() filter function below is not working.
  */
 #}
-<ul class="sms-advanced routing-rule-list">
-  <li class="sms-advanced routing-rule conjunction">
+<ul class="sms-rule-based routing-rule-list">
+  <li class="sms-rule-based routing-rule conjunction">
     {{ ruleset.get('_ALL_TRUE_') ? 'All rules must match'|t : 'Any rule may match'|t }}
   </li>
   {% for key,rule in ruleset.rules %}
   {% if rule.enabled %}
-  <li class="sms-advanced routing-rule">
+  <li class="sms-rule-based routing-rule">
     <span class="rule-label">{{ rule.label }}:</span>
     <span class="rule-operator">{{ rule.negated ? 'not ' }}{{ long_ops[rule.operator] }}</span>
     <span class="rule-operand">{{ rule.operand|replace(',', ', ') }}</span>

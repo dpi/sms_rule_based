@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginBase.
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginBase.
  */
 
-namespace Drupal\sms_advanced\Plugin;
+namespace Drupal\sms_rule_based\Plugin;
 
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
@@ -165,18 +165,24 @@ abstract class SmsRoutingRulePluginBase extends PluginBase implements SmsRouting
         $ret = ($param >= $this->configuration['operand']);
         break;
       case static::IN:
-      case static::LK:
-        $patterns = explode(',', str_replace(' ', '', $this->configuration['operand']));
+        $patterns = explode(',', $this->configuration['operand']);
         $ret = false;
         foreach ($patterns as $pattern) {
           // Replace common wildcards with equivalent regular expressions, then
           // use regex match.
-          $exp = str_replace('%', '.*', str_replace('?', '.', $pattern));
-          $ret = (preg_match("/$exp/i", $param) == 1);
+          $exp = str_replace('%', '.*', str_replace('?', '.', trim($pattern)));
+          // Use strict token matching.
+          $ret = (preg_match("/^$exp\$/i", $param) == 1);
           if ($ret) {
             break;
           }
         }
+        break;
+      case static::LK:
+        // Replace common wildcards with equivalent regular expressions, then
+        // use regex match.
+        $exp = str_replace('%', '.*', str_replace('?', '.', $this->configuration['operand']));
+        $ret = (preg_match("/^$exp\$/i", $param) == 1);
         break;
       case static::RX:
         $ret = (preg_match("/{$this->configuration['operand']}/i", $param) == 1);

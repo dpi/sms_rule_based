@@ -2,26 +2,26 @@
 
 /**
  * @file
- * Contains \Drupal\Tests\sms_advanced\Unit\Entity\SmsRoutingRulesetTest
+ * Contains \Drupal\Tests\sms_rule_based\Unit\Entity\SmsRoutingRulesetTest
  */
 
-namespace Drupal\Tests\sms_advanced\Unit;
+namespace Drupal\Tests\sms_rule_based\Unit;
 
 use Drupal\sms\Message\SmsMessageInterface;
-use Drupal\sms_advanced\Entity\SmsRoutingRuleset;
-use Drupal\sms_advanced\RuleBasedSmsRouter;
+use Drupal\sms_rule_based\Entity\SmsRoutingRuleset;
+use Drupal\sms_rule_based\RuleBasedSmsRouter;
 use Drupal\Tests\UnitTestCase;
 
 /**
- * @coversDefaultClass \Drupal\sms_advanced\RuleBasedSmsRouter
- * @group SMS Advanced
+ * @coversDefaultClass \Drupal\sms_rule_based\RuleBasedSmsRouter
+ * @group SMS Rule based
  */
 class RuleBasedSmsRouterTest extends UnitTestCase {
 
   /**
    * The SMS router for test.
    *
-   * @var \Drupal\sms_advanced\RuleBasedSmsRouter
+   * @var \Drupal\sms_rule_based\RuleBasedSmsRouter
    */
   protected $smsRouter;
 
@@ -38,7 +38,7 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
   /**
    * Carries out tests using the RuleBasedSmsProvider
    *
-   * @param \Drupal\sms_advanced\Entity\SmsRoutingRuleset[] $rulesets
+   * @param \Drupal\sms_rule_based\Entity\SmsRoutingRuleset[] $rulesets
    *   The rulesets.
    * @param \Drupal\sms\Message\SmsMessageInterface $sms
    *   The SMS message.
@@ -46,11 +46,11 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
    *   The numbers expected to be routed according to this ruleset.
    *
    * @covers ::routeSmsRecipients
-   * @dataProvider providerAdvancedRoutingRulesets
+   * @dataProvider providerRuleBasedRoutingRulesets
    */
   public function testSmsRoutingRulesets(array $rulesets, SmsMessageInterface $sms, array $expected_routing) {
     $actual_routing = $this->smsRouter->routeSmsRecipients($sms, $rulesets);
-    $this->assertEquals($actual_routing['routes'], $expected_routing);
+    $this->assertEquals($expected_routing, $actual_routing['routes']);
   }
 
   /**
@@ -58,7 +58,7 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
    *
    * @return array
    */
-  public function providerAdvancedRoutingRulesets() {
+  public function providerRuleBasedRoutingRulesets() {
     $recipients = [
       '2348191234500', '2348101234500', '2348171234500', '2348031234500',
     ];
@@ -100,7 +100,7 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
       [
         [$ruleset = $this->buildRandomRuleset(['country_ng'])],
         $sms,
-        [$ruleset1->get('gateway') => $recipients],
+        [$ruleset->get('gateway') => $recipients],
       ],
     ];
   }
@@ -134,7 +134,7 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
    * @param array $configuration
    *   The configuration to be used to create the plugin.
    *
-   * @return \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginInterface
+   * @return \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface
    *   The plugin instance.
    */
   protected function getSmsRoutingRule(array $configuration) {
@@ -148,13 +148,13 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
    * @var array
    */
   protected static $pluginMap = [
-    'area' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\Area',
-    'country' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\Country',
-    'number' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\Number',
-    'recipients' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\Recipients',
-    'sender' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\Sender',
-    'sendtime' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\Sendtime',
-    'user' => '\Drupal\sms_advanced\Plugin\SmsRoutingRule\User',
+    'area' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\Area',
+    'country' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\Country',
+    'number' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\Number',
+    'recipients' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\Recipients',
+    'sender' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\Sender',
+    'sendtime' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\Sendtime',
+    'user' => '\Drupal\sms_rule_based\Plugin\SmsRoutingRule\User',
   ];
 
   /**
@@ -164,33 +164,33 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
    */
   protected static $rules = [
     'number_group1' => [
-      'operator' => 'LK',
+      'operator' => 'IN',
       'negated' => FALSE,
       'operand' => '234819%,234704%,234702%,234709%,234707%',
       'enabled' => 1,
       'type' => 'number',
     ],
     'number_group2' => [
-      'operator' => 'LK',
+      'operator' => 'IN',
       'negated' => '',
       'operand' => '234703%,234706%,234803%,234806%,234810%,234813%,234816%',
       'type' => 'number',
     ],
     'number_group3' => [
-      'operator' => 'LK',
+      'operator' => 'IN',
       'negated' => '',
       'operand' => '234708%,234802%,234808%,234812%',
       'enabled' => 1,
       'type' => 'number',
     ],
     'number_group4' => [
-      'operator' => 'LK',
+      'operator' => 'IN',
       'negated' => '',
       'operand' => '234809%,234817%,234818%',
       'type' => 'number',
     ],
     'number_group5' => [
-      'operator' => 'LK',
+      'operator' => 'IN',
       'negated' => '',
       'operand' => '234705%,234805%,234807%,234815%,234811%',
       'type' => 'number',
@@ -217,8 +217,14 @@ class RuleBasedSmsRouterTest extends UnitTestCase {
     ],
     'country_ng' => [
       'operator' => 'EQ',
-      'negated' => '1',
+      'negated' => '0',
       'operand' => '234',
+      'type' => 'country',
+    ],
+    'country_not_usa' => [
+      'operator' => 'EQ',
+      'negated' => '1',
+      'operand' => '1',
       'type' => 'country',
     ],
     'area_check' => [

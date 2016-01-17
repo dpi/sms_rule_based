@@ -1,48 +1,22 @@
-sms_advanced.settings:
+sms_rule_based.settings:
   type: config_object
   label: Settings
   mapping:
-    enable_advanced_routing:
+    enable_rule_based_routing:
       type: boolean
-    dashboard:
-      type: sequence
-      label: 'Dashboard settings'
-    nav_bar:
-      type: sequence
-      label: 'Navigation bar settings'
-    sender_id_security:
-      type: mapping
-      label: 'Sender ID security settings'
-      mapping:
-        include_superuser:
-          type: boolean
-          label: 'Include superuser (user #1) in sender id blocking (for testing purposes)'
-        enabled:
-          type: string
-          label: 'Excluded sender ids'
-        included:
-          type: string
-          label: 'Sender ids allowed for specific users'
-    queue:
-      type: mapping
-      label: 'Queue settings'
-      mapping:
-        treshold:
-          type: integer
-          label: 'Maximum messages for which messages will not be queued'
 
-sms_advanced.ruleset.*:
+sms_rule_based.ruleset.*:
   type: config_entity
-  label: Advanced Routing Ruleset
+  label: 'Rule-based Routing Ruleset'
   mapping:
     name:
       type: string
       label: "Ruleset name"
-      description: "The machine name of the advanced routing ruleset."
+      description: "The machine name of the routing ruleset."
     label:
       type: label
       label: "Ruleset label"
-      description: "The human-readable name of the advanced routing ruleset."
+      description: "The human-readable name of the routing ruleset."
     description:
       type: string
       label: "Ruleset description"
@@ -60,7 +34,7 @@ sms_advanced.ruleset.*:
       label: 'Ruleset rules'
       description: 'The list of rules in this ruleset.'
       sequence:
-        - type: sms_advanced.ruleset_rule
+        - type: sms_rule_based.ruleset_rule
           label: 'Ruleset rule'
     _ALL_TRUE_:
       type: boolean
@@ -71,9 +45,9 @@ sms_advanced.ruleset.*:
       label: 'Gateway to route SMS'
       description: 'Gateway to route SMS satisfying this ruleset'
 
-sms_advanced.ruleset_rule:
+sms_rule_based.ruleset_rule:
   type: mapping
-  label: 'Advanced Routing Ruleset Rule'
+  label: 'Rule-based Routing Ruleset Rule'
   mapping:
     enabled:
       type: boolean
@@ -81,9 +55,9 @@ sms_advanced.ruleset_rule:
     operator:
       type: string
       label: 'Operator'
-    value:
+    operand:
       type: string
       label: 'Value to be compared on the right side of the operator'
-    negate:
+    negated:
       type: boolean
       label: 'Negate the result if true'

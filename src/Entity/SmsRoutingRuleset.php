@@ -2,27 +2,27 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Entity\SmsRoutingRuleset
+ * Contains \Drupal\sms_rule_based\Entity\SmsRoutingRuleset
  */
 
-namespace Drupal\sms_advanced\Entity;
+namespace Drupal\sms_rule_based\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
-use Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection;
 
 /**
  * @ConfigEntityType(
- *   id = "sms_advanced_ruleset",
+ *   id = "sms_routing_ruleset",
  *   label = @Translation("SMS Routing Ruleset"),
  *   handlers = {
  *     "form" = {
- *       "default" = "\Drupal\sms_advanced\Form\AdvancedRulesetForm",
- *       "delete" = "\Drupal\sms_advanced\Form\AdvancedRulesetDeleteForm",
+ *       "default" = "\Drupal\sms_rule_based\Form\SmsRoutingRulesetForm",
+ *       "delete" = "\Drupal\sms_rule_based\Form\SmsRoutingRulesetDeleteForm",
  *     },
- *     "list_builder" = "\Drupal\sms_advanced\Form\AdvancedRulesetListForm",
+ *     "list_builder" = "\Drupal\sms_rule_based\Form\SmsRoutingRulesetListForm",
  *   },
- *   admin_permission = "administer sms advanced",
+ *   admin_permission = "administer rule-based routing",
  *   config_prefix = "ruleset",
  *   entity_keys = {
  *     "id" = "name",
@@ -30,22 +30,22 @@ use Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection;
  *     "label" = "label",
  *   },
  *   links = {
- *     "edit-form" = "/admin/config/sms_advanced/ruleset/edit/{sms_advanced_ruleset}",
- *     "delete-form" = "/admin/config/sms_advanced/ruleset/delete/{sms_advanced_ruleset}",
+ *     "edit-form" = "/admin/config/sms_rule_based/ruleset/edit/{sms_routing_ruleset}",
+ *     "delete-form" = "/admin/config/sms_rule_based/ruleset/delete/{sms_routing_ruleset}",
  *   },
  * );
  */
 class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginCollectionInterface {
 
   /**
-   * The name of the advanced routing ruleset.
+   * The name of the rule-based routing ruleset.
    *
    * @var string
    */
   protected $name;
 
   /**
-   * The name of the advanced routing ruleset.
+   * The name of the rule-based routing ruleset.
    *
    * @var string
    */
@@ -74,6 +74,18 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
 
   /**
    * The list of rules in this ruleset.
+   *
+   * Each rule is an array with the following sub-keys:
+   * - name: The machine-name of the
+   * - enabled: Whether the rule is enabled to run or not.
+   * - operator: The logical comparison operator which would be used to evaluate
+   *   the rule.
+   * - operand: The value which will be used to evaluate the rule against the
+   *   given parameter.
+   * - negated: Whether the rule's expression should be negated.
+   * - type: The SmsRoutingRulePluginInterface plugin that is used to
+   *   instantiate the rule.
+   *
    * 
    * @var array
    */
@@ -98,7 +110,7 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
   /**
    * The collection of the SMS routing rules in this ruleset.
    *
-   * @var \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection
+   * @var \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection
    */
   protected $pluginCollection;
 
@@ -110,7 +122,7 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
   }
 
   /**
-   * @return \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection
+   * @return \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection
    */
   protected function getPluginCollection() {
     if (!isset($this->pluginCollection)) {
@@ -128,7 +140,7 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
    * @param string $name
    *   The name of the SMS routing rule.
    *
-   * @return \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginInterface
+   * @return \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface
    */
   public function getRule($name) {
     return $this->getPluginCollection()->get($name);
@@ -137,7 +149,7 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
   /**
    * Gets all the routing rules in this ruleset.
    *
-   * @return \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection
+   * @return \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection
    */
   public function getRules() {
     return $this->getPluginCollection();

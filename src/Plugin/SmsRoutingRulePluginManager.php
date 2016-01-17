@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginManager
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginManager
  */
 
-namespace Drupal\sms_advanced\Plugin;
+namespace Drupal\sms_rule_based\Plugin;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -27,9 +27,9 @@ class SmsRoutingRulePluginManager extends DefaultPluginManager {
    *   Module handler for calling module hooks.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/SmsRoutingRule', $namespaces, $module_handler, 'Drupal\sms_advanced\Plugin\SmsRoutingRulePluginInterface', 'Drupal\sms_advanced\Annotation\SmsRoutingRule');
-    $this->setCacheBackend($cache_backend, 'sms_routing_rule_type');
-    $this->alterInfo('sms_routing_rule_type');
+    parent::__construct('Plugin/SmsRoutingRule', $namespaces, $module_handler, 'Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface', 'Drupal\sms_rule_based\Annotation\SmsRoutingRule');
+    $this->setCacheBackend($cache_backend, 'sms_routing_rule');
+    $this->alterInfo('sms_routing_rule');
   }
 
 }

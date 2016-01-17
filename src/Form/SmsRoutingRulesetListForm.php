@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Form\SmsRouteListForm
+ * Contains \Drupal\sms_rule_based\Form\SmsRouteListForm
  */
 
-namespace Drupal\sms_advanced\Form;
+namespace Drupal\sms_rule_based\Form;
 
 use Drupal\Core\Config\Entity\DraggableListBuilder;
 use Drupal\Core\Entity\EntityInterface;
@@ -16,13 +16,13 @@ use Drupal\sms\Entity\SmsGateway;
 /**
  * @todo: Use the plugin display widgets to show the summary of the rules here.
  */
-class AdvancedRulesetListForm extends DraggableListBuilder {
+class SmsRoutingRulesetListForm extends DraggableListBuilder {
 
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'sms_advanced_ruleset_list_form';
+    return 'sms_routing_ruleset_list_form';
   }
 
   /**
@@ -52,7 +52,7 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
       'name' => ['#markup' => $entity->label()],
       'description' => ['#markup' => $entity->get('description')],
       'rules' => [
-        '#theme' => 'sms_advanced_routing_rules',
+        '#theme' => 'sms_rule_based_routing_rules',
         '#ruleset' => $entity,
       ],
       'gateway' => ['#markup' => SmsGateway::load($entity->get('gateway'))->label()],
@@ -64,16 +64,16 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildForm($form, $form_state);
-    $default = \Drupal::config('sms_advanced.settings')->get('enable_advanced_routing');
+    $default = \Drupal::config('sms_rule_based.settings')->get('enable_rule_based_routing');
     $form['enable'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Enable advanced routing'),
+      '#title' => t('Enable rule-based routing'),
       '#default_value' => (bool) $default ? $default : false,
       '#weight' => 0,
     );
     // Place the table below the checkbox.
     $form[$this->entitiesKey]['#weight'] = 1;
-//    $form[$this->entitiesKey]['#title'] = $this->t('Advanced routing rulesets');
+//    $form[$this->entitiesKey]['#title'] = $this->t('Rule-based routing rulesets');
     $footer = array(
       array(
         t('Default Gateway'),
@@ -128,7 +128,7 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
         }
       }
     }
-    $this->configFactory()->getEditable('sms_advanced.settings')->set('enable_advanced_routing', $form_state->getValue('enable'))->save();
+    $this->configFactory()->getEditable('sms_rule_based.settings')->set('enable_rule_based_routing', $form_state->getValue('enable'))->save();
   }
 
 
@@ -144,7 +144,7 @@ class AdvancedRulesetListForm extends DraggableListBuilder {
   /**
    * Returns the SMS gateway manager.
    *
-   * @return \Drupal\sms_advanced\Provider\RuleBasedSmsProvider
+   * @return \Drupal\sms_rule_based\Provider\RuleBasedSmsProvider
    */
   protected function smsProvider() {
     return \Drupal::service('sms_provider.rule_based');

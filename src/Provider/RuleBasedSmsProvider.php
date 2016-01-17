@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\RuleBasedSmsProvider.
+ * Contains \Drupal\sms_rule_based\RuleBasedSmsProvider.
  */
 
-namespace Drupal\sms_advanced\Provider;
+namespace Drupal\sms_rule_based\Provider;
 
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\sms\Entity\SmsGateway;
@@ -13,7 +13,7 @@ use Drupal\sms\Message\SmsMessageResult;
 use Drupal\sms\Message\SmsMessage;
 use Drupal\sms\Message\SmsMessageInterface;
 use Drupal\sms\Provider\DefaultSmsProvider;
-use Drupal\sms_advanced\Entity\SmsRoutingRuleset;
+use Drupal\sms_rule_based\Entity\SmsRoutingRuleset;
 
 /**
  * An SMS service provider that routes SMS based on user-configured rules.
@@ -64,17 +64,17 @@ class RuleBasedSmsProvider extends DefaultSmsProvider {
   }
 
   /**
-   * Uses the advanced routing service to route recipients through SMS gateways.
+   * Uses the rule-based routing service to route recipients through SMS gateways.
    *
    * @param \Drupal\sms\Message\SmsMessageInterface $sms
    *
    * @return array
    */
   protected function routeMessage(SmsMessageInterface $sms) {
-    if (\Drupal::config('sms_advanced.settings')->get('enable_advanced_routing')) {
+    if (\Drupal::config('sms_rule_based.settings')->get('enable_rule_based_routing')) {
       // Get rulesets and sort them in order so the first ruleset to match is
       // implemented.
-      /** @var \Drupal\sms_advanced\Entity\SmsRoutingRuleset[] $rulesets */
+      /** @var \Drupal\sms_rule_based\Entity\SmsRoutingRuleset[] $rulesets */
       $rulesets = SmsRoutingRuleset::loadMultiple();
       // @todo this sorting needs to be checked.
       uasort($rulesets, function(SmsRoutingRuleset $ruleset1, SmsRoutingRuleset $ruleset2) {
@@ -82,7 +82,7 @@ class RuleBasedSmsProvider extends DefaultSmsProvider {
         $weight2 = $ruleset2->get('weight');
         return ($weight1 > $weight2) ? 1 : ($weight1 == $weight2 ? 0 : -1);
       });
-      $routing = \Drupal::service('sms_advanced.sms_router')->routeSmsRecipients($sms, $rulesets);
+      $routing = \Drupal::service('sms_rule_based.sms_router')->routeSmsRecipients($sms, $rulesets);
     }
     else {
       $routing = [

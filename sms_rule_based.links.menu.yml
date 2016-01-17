@@ -1,0 +1,5 @@
+sms_rule_based.admin_settings:
+  title: 'Rule-based SMS Settings'
+  description: 'Configure settings for rule-based SMS routing.'
+  route_name: sms_rule_based.admin_settings
+  parent: sms.admin

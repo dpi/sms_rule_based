@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Plugin\SmsRoutingRule\User.
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRule\User.
  */
 
-namespace Drupal\sms_advanced\Plugin\SmsRoutingRule;
+namespace Drupal\sms_rule_based\Plugin\SmsRoutingRule;
 
 use Drupal\Core\Entity\Element\EntityAutocomplete;
-use Drupal\sms_advanced\Plugin\SmsRoutingRulePluginBase;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginBase;
 use Drupal\user\Entity\User as UserEntity;
 
 /**

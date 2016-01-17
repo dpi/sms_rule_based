@@ -1,0 +1,11 @@
+services:
+  sms_provider.rule_based:
+    class: \Drupal\sms_rule_based\Provider\RuleBasedSmsProvider
+    arguments: ['@config.factory', '@module_handler']
+
+  sms_rule_based.sms_router:
+    class: \Drupal\sms_rule_based\RuleBasedSmsRouter
+
+  plugin.manager.sms_routing_rule:
+    class: \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginManager
+    arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']

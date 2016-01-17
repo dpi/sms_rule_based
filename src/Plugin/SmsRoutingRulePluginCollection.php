@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection;
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection;
  */
 
-namespace Drupal\sms_advanced\Plugin;
+namespace Drupal\sms_rule_based\Plugin;
 
 use Drupal\Core\Plugin\DefaultLazyPluginCollection;
 

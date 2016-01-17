@@ -2,12 +2,12 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Plugin\SmsRoutingRule\Recipients.
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRule\Recipients.
  */
 
-namespace Drupal\sms_advanced\Plugin\SmsRoutingRule;
+namespace Drupal\sms_rule_based\Plugin\SmsRoutingRule;
 
-use Drupal\sms_advanced\Plugin\SmsRoutingRulePluginBase;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginBase;
 
 /**
  * @SmsRoutingRule(

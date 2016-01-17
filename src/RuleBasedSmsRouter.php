@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\RuleBasedSmsRouter
+ * Contains \Drupal\sms_rule_based\RuleBasedSmsRouter
  */
 
-namespace Drupal\sms_advanced;
+namespace Drupal\sms_rule_based;
 
 use Drupal\sms\Message\SmsMessageInterface;
 
@@ -21,7 +21,7 @@ class RuleBasedSmsRouter {
    *
    * @param \Drupal\sms\Message\SmsMessageInterface $sms
    *   The sms message object.
-   * @param \Drupal\sms_advanced\Entity\SmsRoutingRuleset[] $rulesets
+   * @param \Drupal\sms_rule_based\Entity\SmsRoutingRuleset[] $rulesets
    *   The list of SMS routing rulesets.
    *
    * @return array
@@ -42,7 +42,7 @@ class RuleBasedSmsRouter {
     $context['uuid'] = $sms->getUuid();
     $routing = [];
 
-    /** @var \Drupal\sms_advanced\Entity\SmsRoutingRuleset $ruleset */
+    /** @var \Drupal\sms_rule_based\Entity\SmsRoutingRuleset $ruleset */
     foreach ($rulesets as $ruleset) {
       if ($ruleset->get('enabled') && $matches = $this->matchRoute($ruleset->getRules(), $numbers, $context, $ruleset->get('_ALL_TRUE_'))) {
         if (!isset($routing['routes'][$ruleset->get('gateway')])) {
@@ -68,7 +68,7 @@ class RuleBasedSmsRouter {
    * the numbers based on the rules defined. The numbers that don't match any
    * rule are returned in the __default__ gateway key.
    *
-   * @param \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginInterface[]|\Drupal\sms_advanced\Plugin\SmsRoutingRulePluginCollection $rules
+   * @param \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface[]|\Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection $rules
    *   The set of rules to check for match.
    * @param array $numbers
    *   List of numbers to be matched against the rules.
@@ -82,7 +82,10 @@ class RuleBasedSmsRouter {
    *   via that gateway based on specified rulesets.
    */
   protected function matchRoute($rules, array &$numbers, $context, $all_true = FALSE) {
-    // Run through all the rules.
+    // Run through all the rules, remove numbers that match the rules from the
+    // $numbers array and add to the return array.
+    // Different code paths needed for all rules being true (conjunction) and
+    // any rule being true.
     if ($all_true) {
       $ret = $numbers;
       foreach ($rules as $rule) {

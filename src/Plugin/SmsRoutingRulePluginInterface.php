@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\sms_advanced\Plugin\SmsRoutingRulePluginInterface
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface
  */
 
-namespace Drupal\sms_advanced\Plugin;
+namespace Drupal\sms_rule_based\Plugin;
 
 /**
  *
