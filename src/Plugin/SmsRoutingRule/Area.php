@@ -13,7 +13,7 @@ use Drupal\sms_country\Utility\CountryCodes;
 /**
  * @SmsRoutingRule(
  *   id = "area",
- *   label = @Translation("Area Code"),
+ *   label = @Translation("Area code"),
  *   description = @Translation("Area code (the 3 digits immediately following the country code)."),
  * );
  */

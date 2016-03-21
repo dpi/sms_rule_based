@@ -104,6 +104,20 @@ abstract class SmsRoutingRulePluginBase extends PluginBase implements SmsRouting
   /**
    * {@inheritdoc}
    */
+  public function getReadableOperator() {
+    return static::getLongOperatorTypes()[$this->getOperator()];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getReadableOperand() {
+    return $this->getOperand();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function isNegated() {
     return $this->configuration['negated'];
   }
@@ -133,8 +147,22 @@ abstract class SmsRoutingRulePluginBase extends PluginBase implements SmsRouting
    */
   public abstract function match(array $numbers, array $context);
 
-  public function render() {
+  public function toString() {
+    return $this->render();
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function render() {
+    return '';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function processWidgetValue($form_value) {
+    return $form_value;
   }
 
   /**
@@ -172,7 +200,7 @@ abstract class SmsRoutingRulePluginBase extends PluginBase implements SmsRouting
           // use regex match.
           $exp = str_replace('%', '.*', str_replace('?', '.', trim($pattern)));
           // Use strict token matching.
-          $ret = (preg_match("/^$exp\$/i", $param) == 1);
+          $ret = (preg_match("/^$exp\$/i", $param) === 1);
           if ($ret) {
             break;
           }
@@ -182,10 +210,10 @@ abstract class SmsRoutingRulePluginBase extends PluginBase implements SmsRouting
         // Replace common wildcards with equivalent regular expressions, then
         // use regex match.
         $exp = str_replace('%', '.*', str_replace('?', '.', $this->configuration['operand']));
-        $ret = (preg_match("/^$exp\$/i", $param) == 1);
+        $ret = (preg_match("/^$exp\$/i", $param) === 1);
         break;
       case static::RX:
-        $ret = (preg_match("/{$this->configuration['operand']}/i", $param) == 1);
+        $ret = (preg_match("/{$this->configuration['operand']}/i", $param) === 1);
         break;
     }
     if ($this->configuration['negated'] && isset($ret)) {
@@ -215,14 +243,14 @@ abstract class SmsRoutingRulePluginBase extends PluginBase implements SmsRouting
    */
   public static function getLongOperatorTypes() {
     return array(
-      static::EQ => new TranslatableMarkup('equal'),
-      static::LT => new TranslatableMarkup('less than'),
-      static::LE => new TranslatableMarkup('less or equal'),
-      static::GT => new TranslatableMarkup('greater than'),
-      static::GE => new TranslatableMarkup('greater or equal'),
-      static::IN => new TranslatableMarkup('any of'),
-      static::LK => new TranslatableMarkup('like'),
-      static::RX => new TranslatableMarkup('regexp'),
+      static::EQ => new TranslatableMarkup('is'),
+      static::LT => new TranslatableMarkup('is less than'),
+      static::LE => new TranslatableMarkup('is less or equal to'),
+      static::GT => new TranslatableMarkup('is more than'),
+      static::GE => new TranslatableMarkup('is more or equal to'),
+      static::IN => new TranslatableMarkup('is any of'),
+      static::LK => new TranslatableMarkup('is like'),
+      static::RX => new TranslatableMarkup('matches'),
     );
   }
 

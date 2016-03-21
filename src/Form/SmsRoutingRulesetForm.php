@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\sms_rule_based\Form\SmsRoutingRulesetForm
+ * Contains \Drupal\sms_rule_based\Form\SmsRoutingRulesetForm.
  */
 
 namespace Drupal\sms_rule_based\Form;
@@ -84,8 +84,9 @@ class SmsRoutingRulesetForm extends EntityForm {
 
     $gateway = $ruleset->get('gateway');
     $options = array_map(function($value) {
-      return $value->label();
-    }, SmsGateway::loadMultiple());
+        return $value->label();
+      }, SmsGateway::loadMultiple());
+
     $form['selection']['gateway'] = array(
       '#type' => 'select',
       '#title' => t('Gateway'),
@@ -121,7 +122,7 @@ class SmsRoutingRulesetForm extends EntityForm {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $triggering_element = $form_state->getTriggeringElement();
-    // Update all the rules based on submitted form values.
+    // Update all the existing rules based on submitted form values.
     /** @var \Drupal\sms_rule_based\Entity\SmsRoutingRuleset $ruleset */
     $ruleset = $this->entity;
     $rules = [];
@@ -131,6 +132,7 @@ class SmsRoutingRulesetForm extends EntityForm {
       unset($rule['operation']);
       $rule['name'] = $rule_name;
       $rule['type'] = $ruleset->getRule($rule_name)->getType();
+      $rule['operand'] = $ruleset->getRule($rule_name)->processWidgetValue($rule['operand']);
       $rules[$rule_name] = $rule;
     }
     $ruleset->setRules($rules);
@@ -149,8 +151,7 @@ class SmsRoutingRulesetForm extends EntityForm {
     // Save the entire ruleset if the save button is clicked.
     if ($triggering_element['#value']->getUntranslatedString() === 'Save') {
       // Make a ruleset from the form submissions.
-      /** @var  \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface $rule
-       */
+      /** @var  \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface $rule */
       foreach ($ruleset->getRules() as $rule_name => $rule) {
         if ($rule->isEnabled() && empty($rule->getOperand())) {
           // @todo: Errors not showing on form elements.
@@ -237,7 +238,7 @@ class SmsRoutingRulesetForm extends EntityForm {
    * Builds a row in the ruleset rules' table.
    *
    * @param \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface $rule
-   *   The rule for which the row is to built.
+   *   The rule for which the row is to be built.
    *
    * @return array
    *   A single row element.
@@ -260,13 +261,11 @@ class SmsRoutingRulesetForm extends EntityForm {
         '#default_value' => $rule->getOperator(),
       ),
       'operand' => $rule->getWidget() + array(
-          '#type' => 'textfield',
-          '#title' => $this->t('Rule operand'),
-          '#title_display' => 'invisible',
-          '#default_value' => $rule->getOperand(),
-          // @todo: inline styling
-//          '#attributes' => array('style' => 'width:300px'),
-        ),
+        '#type' => 'textfield',
+        '#title' => $this->t('Rule operand'),
+        '#title_display' => 'invisible',
+        '#default_value' => $rule->getOperand(),
+      ),
       'negated' => array(
         '#type' => 'checkbox',
         '#title' => $this->t('Negate'),
@@ -286,6 +285,12 @@ class SmsRoutingRulesetForm extends EntityForm {
     );
   }
 
+  /**
+   * Builds the table row for adding new rulesets.
+   *
+   * @return array
+   *   A row element with add new button and other markup.
+   */
   protected function buildNewRuleRow() {
     return [
       'enabled' => ['#markup' => ''],

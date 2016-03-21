@@ -8,6 +8,7 @@
  * @todo: the |replace() filter function below is not working.
  */
 #}
+{{ attach_library('sms_rule_based/rule-display') }}
 <ul class="sms-rule-based routing-rule-list">
   <li class="sms-rule-based routing-rule conjunction">
     {{ ruleset.get('_ALL_TRUE_') ? 'All rules must match'|t : 'Any rule may match'|t }}
@@ -15,9 +16,9 @@
   {% for key,rule in ruleset.rules %}
   {% if rule.enabled %}
   <li class="sms-rule-based routing-rule">
-    <span class="rule-label">{{ rule.label }}:</span>
-    <span class="rule-operator">{{ rule.negated ? 'not ' }}{{ long_ops[rule.operator] }}</span>
-    <span class="rule-operand">{{ rule.operand|replace(',', ', ') }}</span>
+    <span class="rule-label">{{ rule.label }}</span>
+    <span class="rule-operator">{{ rule.negated ? rule.readableOperator|replace({'is': 'is not', 'matches': 'doesn\'t match'}) : rule.readableOperator }}</span>
+    <span class="rule-operand">{{ rule.readableOperand }}</span>
   </li>
   {% endif %}
   {% endfor %}

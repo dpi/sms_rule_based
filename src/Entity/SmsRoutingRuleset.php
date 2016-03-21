@@ -45,7 +45,7 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
   protected $name;
 
   /**
-   * The name of the rule-based routing ruleset.
+   * The label of the rule-based routing ruleset.
    *
    * @var string
    */
@@ -76,7 +76,7 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
    * The list of rules in this ruleset.
    *
    * Each rule is an array with the following sub-keys:
-   * - name: The machine-name of the
+   * - name: The machine-name of the rule.
    * - enabled: Whether the rule is enabled to run or not.
    * - operator: The logical comparison operator which would be used to evaluate
    *   the rule.
@@ -149,7 +149,8 @@ class SmsRoutingRuleset extends ConfigEntityBase implements EntityWithPluginColl
   /**
    * Gets all the routing rules in this ruleset.
    *
-   * @return \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection
+   * @return \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginCollection|
+   *   \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface[]
    */
   public function getRules() {
     return $this->getPluginCollection();

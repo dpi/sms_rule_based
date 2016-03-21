@@ -9,3 +9,7 @@ services:
   plugin.manager.sms_routing_rule:
     class: \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginManager
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
+
+  # Override the default sms_provider alias.
+  sms_provider:
+    alias: sms_provider.rule_based

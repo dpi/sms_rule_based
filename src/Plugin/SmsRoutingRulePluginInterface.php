@@ -2,13 +2,13 @@
 
 /**
  * @file
- * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface
+ * Contains \Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginInterface.
  */
 
 namespace Drupal\sms_rule_based\Plugin;
 
 /**
- *
+ * Interface for SMS routing rule plugins.
  */
 interface SmsRoutingRulePluginInterface {
 
@@ -60,6 +60,20 @@ interface SmsRoutingRulePluginInterface {
   public function getOperand();
 
   /**
+   * Gets the human-readable description of the operator.
+   *
+   * @return string
+   */
+  public function getReadableOperator();
+
+  /**
+   * Gets the human-readable operand value.
+   *
+   * @return string
+   */
+  public function getReadableOperand();
+
+  /**
    * Gets whether this rule is negated or not.
    *
    * @return bool
@@ -93,5 +107,16 @@ interface SmsRoutingRulePluginInterface {
    *   A render array containing the markup for display.
    */
   public function render();
+
+  /**
+   * Processes the form widget submitted value into a string for storage.
+   *
+   * @param mixed $widget_value
+   *   The form value returned from the widget.
+   *
+   * @return string
+   *   The processed form value.
+   */
+  public function processWidgetValue($widget_value);
 
 }

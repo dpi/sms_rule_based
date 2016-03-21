@@ -16,10 +16,3 @@ function sms_rule_based_theme() {
   );
   return $items;
 }
-
-/**
- * Preprocess function for sms_rule_based_routing_rule theme.
- */
-function sms_rule_based_preprocess_sms_rule_based_routing_rules(&$variables) {
-  $variables['long_ops'] = SmsRoutingRulePluginBase::getLongOperatorTypes();
-}

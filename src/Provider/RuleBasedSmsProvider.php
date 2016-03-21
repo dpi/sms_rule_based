@@ -25,22 +25,22 @@ class RuleBasedSmsProvider extends DefaultSmsProvider {
   /**
    * {@inheritdoc}
    */
-  public function send(SmsMessageInterface $sms, array $options) {
+  public function send(SmsMessageInterface $sms, array $options = []) {
     $options += $sms->getOptions();
     $routing = $this->routeMessage($sms);
 
     $results = [];
     $log_message = [];
+    $routed_sms = new SmsMessage($sms->getSender(), [], $sms->getMessage(), $sms->getOptions(), $sms->getUid());
     foreach ($routing['routes'] as $gateway_id => $numbers) {
       if ($numbers) {
-        $routed_sms = new SmsMessage($sms->getSender(), $numbers, $sms->getMessage(), $sms->getOptions(), $sms->getUid());
         if ($gateway_id === '__default__') {
           $gateway = $this->getDefaultGateway();
         }
         else {
           $gateway = SmsGateway::load($gateway_id);
         }
-
+        $routed_sms->addRecipients($numbers);
         if ($this->preProcess($routed_sms, $options, $gateway)) {
           $this->moduleHandler->invokeAll('sms_send', [$routed_sms, $options, $gateway]);
           // @todo Apply token replacements.
@@ -49,7 +49,7 @@ class RuleBasedSmsProvider extends DefaultSmsProvider {
 
           if ($result) {
             $counts[$gateway_id] = count($numbers);
-            $size = count($result->getReport());
+            $size = count($result->getReports());
             $log_message[] = new TranslatableMarkup('@gateway: @size of @counts',
               [
                 '@gateway' => $gateway->label(),
@@ -58,6 +58,7 @@ class RuleBasedSmsProvider extends DefaultSmsProvider {
               ]);
           }
         }
+        $routed_sms->removeRecipients($numbers);
       }
     }
     return $this->mergeMessageResults($results);
@@ -103,13 +104,19 @@ class RuleBasedSmsProvider extends DefaultSmsProvider {
    *   A single message result consisting of merger of all those in $results.
    */
   public function mergeMessageResults(array $results) {
-    $data = [];
+    $data = [
+      'status' => TRUE,
+      'credit_balance' => 0,
+      'credits_used' => 0,
+      'error_message' => '',
+      'reports' => [],
+    ];
     foreach ($results as $sms_result) {
       $data['status'] &= $sms_result->getStatus();
       $data['credit_balance'] = $sms_result->getBalance();
       $data['credits_used'] += $sms_result->getCreditsUsed();
       $data['error_message'] = $sms_result->getErrorMessage();
-      $data['report'] += $sms_result->getReport();
+      $data['reports'] += $sms_result->getReports();
     }
     return new SmsMessageResult($data);
   }

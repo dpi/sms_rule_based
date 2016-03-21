@@ -7,6 +7,7 @@
 
 namespace Drupal\Tests\sms_rule_based\Unit;
 
+use Drupal\Component\Utility\Random;
 use Drupal\Component\Uuid\Php;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityManager;
@@ -16,6 +17,16 @@ use Drupal\Core\Entity\EntityTypeRepositoryInterface;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\sms\Message\SmsMessage;
 use Drupal\sms_rule_based\Entity\SmsRoutingRuleset;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\Area;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\Country;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\Number;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\Recipients;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\Sender;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\Sendtime;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRule\User;
+use Drupal\sms_rule_based\Plugin\SmsRoutingRulePluginBase;
+use Drupal\sms_rule_based\RuleBasedSmsRouter;
+use Prophecy\Argument;
 
 /**
  * @coversDefaultClass \Drupal\sms_rule_based\Entity\SmsRoutingRuleset
@@ -32,8 +43,10 @@ class SmsRoutingRulesetTest extends KernelTestBase {
     $this->entityStorage = $this->prophesize(EntityStorageInterface::class);
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
     $entity_type_repository = $this->prophesize(EntityTypeRepositoryInterface::class);
-    $entity_type_manager->getStorage(NULL)->willReturn($this->entityStorage);
-    $entity_type_repository->getEntityTypeFromClass(SmsRoutingRuleset::class)->willReturn(NULL);
+    $entity_type_repository->getEntityTypeFromClass(SmsRoutingRuleset::class)
+      ->willReturn('test_entity_type');
+    $entity_type_manager->getStorage('test_entity_type')
+      ->willReturn($this->entityStorage);
 
     // Set up the container.
     $container = new ContainerBuilder();
@@ -50,214 +63,229 @@ class SmsRoutingRulesetTest extends KernelTestBase {
   /**
    * @dataProvider providerRuleBasedRoutingRulesets
    */
-  public function testRuleBasedRoutingRulesets(array $rulesets, array $numbers, array $routed_array) {
-    // @todo Need to refactor this test method signature to do more rulesets.
+  public function testRuleBasedRoutingRulesets(array $rulesets, array $numbers, array $context, array $routed_array) {
     // Set up return value for entity storage stub.
-    $this->entityStorage->loadMultiple(NULL)->will(function() use ($rulesets) {
-      $return_val = [];
-      foreach ($rulesets as $name => $ruleset) {
-        $return_val[$name] = new SmsRoutingRuleset($ruleset, 'sms_routing_ruleset');
-      }
-      return $return_val;
-    });
+    $uuid_service = new Php();
+    $ruleset_objects = [];
+    foreach ($rulesets as $name => $ruleset) {
+      $ruleset += ['uuid' => $uuid_service->generate()];
+      $ruleset_objects[$name] = new TestSmsRoutingRuleset($ruleset);
+    }
     $sms = new SmsMessage('sender', $numbers, 'test message', [], 1);
-    $routing = \Drupal\sms_rule_based\RuleBasedRouting::routeSmsRecipients($sms);
-    $this->assertEquals($routing['routes']['42tele'], $routed_array);
+    $router = new RuleBasedSmsRouter();
+    $routing = $router->routeSmsRecipients($sms, $ruleset_objects);
+    foreach ($routed_array as $gateway => $numbers) {
+      $this->assertEquals($routing['routes'][$gateway], $numbers);
+    }
     $this->assertNotContains($routed_array[0], $routing['routes']['__default__']);
   }
 
+  /**
+   * @todo More test cases needed.
+   */
   public function providerRuleBasedRoutingRulesets() {
     return [
-      [[$this->rulesets['cdma']], ['2348191234500', '2348101234500', '2348171234500', '2348031234500'], ['2348191234500']],
+      [
+        [$this->rulesets['cdma']],
+        self::$all_numbers,
+        [],
+        ['42_cdma' => ['2348191234500', '9879879897987']],
+      ],
+      [
+        [$this->rulesets['debug']],
+        self::$all_numbers,
+        ['sender' => 'debug'],
+        ['log' => self::$all_numbers],
+      ],
+      [
+        [$this->rulesets['block_user']],
+        self::$all_numbers,
+        ['uid' => 3],
+        ['2348191234500'],
+      ],
+      [
+        [$this->rulesets['cdma']],
+        self::$all_numbers,
+        [],
+        ['2348191234500'],
+      ],
     ];
   }
 
   protected $rulesets = [
-    "cdma" => [
-      "name" => "cdma",
-      "enabled" => 1,
-      "description" => "",
-      "rules" => [
-        '_ALL_TRUE_' => TRUE,
+    'cdma' => [
+      'name' => 'cdma',
+      'enabled' => 1,
+      'description' => '',
+      '_ALL_TRUE_' => TRUE,
+      'rules' => [
         'number' => [
-          'op' => 'LK',
-          'neg' => FALSE,
-          'exp' => '234819%,234704%,234702%,234709%,234707%',
+          'operator' => 'IN',
+          'negated' => FALSE,
+          'operand' => '234819%,987987%',
         ],
       ],
-      "gateway" => "42tele",
-      "weight" => "-4"
+      'gateway' => '42_cdma',
+      'weight' => '-4'
     ],
-    "debug" => [
-      "name" => "debug",
-      "enabled" => 1,
-      "description" => "Used for quick debugging purposes. Any message with sender id \"debug\" is sent through the debug gateway so as to avoid running down credit.",
-      "rules" => [
-        '_ALL_TRUE_' => FALSE,
+    'debug' => [
+      'name' => 'debug',
+      'enabled' => 1,
+      'description' => 'Used for quick debugging purposes. Send to log.',
+      '_ALL_TRUE_' => FALSE,
+      'rules' => [
         'sender' => [
-          'op' => 'EQ',
-          'neg' => '',
-          'exp' => 'debug',
+          'operator' => 'EQ',
+          'negated' => FALSE,
+          'operand' => 'debug',
         ],
       ],
-      "gateway" => "log",
-      "weight" => "-8",
+      'gateway' => 'log',
+      'weight' => '-8',
     ],
-    "yello_spam" => [
-      "name" => "yello_spam",
-      "enabled" => 0,
-      "description" => "Catch the Y'ello spammers and re-route to debug. But only do so when actually sending bulk (recipients > 200), so that they will not get bounced when testing",
-      "rules" => [
-        '_ALL_TRUE_' => TRUE,
-        'sender' => [
-          'op' => 'RX',
-          'neg' => '',
-          'exp' => 'Y[\' "]*[e3][l1]+[o0]+.*5',
-        ],
-        '' => [
-          'op' => '02',
-          'neg' => '',
-          'exp' => '0',
-        ],
-      ],
-      "gateway" => "debug",
-      "weight" => "-2",
-    ],
-    "airtel" => [
-      "name" => "airtel",
-      "enabled" => 0,
-      "description" => "Use 42 Telecom for Airtel numbers",
-      "rules" => [
-        '_ALL_TRUE_' => '',
+    'direct' => [
+      'name' => 'direct',
+      'enabled' => 0,
+      'description' => 'Direct numbers to foobar gateway',
+      '_ALL_TRUE_' => '',
+      'rules' => [
         'number' => [
-          'op' => 'LK',
-          'neg' => '',
-          'exp' => '234708%,234802%,234808%,234812%',
+          'operator' => 'IN',
+          'negated' => '',
+          'operand' => '347508%,481202%,854208%,1234%',
         ],
       ],
-      "gateway" => "idigital",
-      "weight" => "-1",
+      'gateway' => 'i_direct',
+      'weight' => '-1',
     ],
-    "etisalat_gateway" => [
-      "name" => "etisalat_gateway",
-      "enabled" => 0,
-      "description" => "",
-      "rules" => [
-        '_ALL_TRUE_' => '',
-        'number' => [
-          'op' => 'LK',
-          'neg' => '',
-          'exp' => '234809%,234817%,234818%',
-        ],
-      ],
-      "gateway" => "idigital",
-      "weight" => "-7",
-    ],
-    "mtn_gateway" => [
-      "name" => "mtn_gateway",
-      "enabled" => 0,
-      "description" => "",
-      "rules" => [
-        '_ALL_TRUE_' => FALSE,
+    'block_user' => [
+      'name' => 'block_user',
+      'enabled' => 0,
+      'description' => 'Block a user (disabled)',
+      '_ALL_TRUE_' => FALSE,
+      'rules' => [
         'user' => [
-          'op' => 'EQ',
-          'neg' => '',
-          'exp' => 'nattah',
+          'operator' => 'EQ',
+          'negated' => '',
+          'operand' => 'blocked_user',
         ],
         'number' => [
-          'op' => 'LK',
-          'neg' => '',
-          'exp' => '234703%,234706%,234803%,234806%,234810%,234813%,234816%,234809%,234817%,234818%',
+          'operator' => 'IN',
+          'negated' => '',
+          'operand' => '234%,345%,987%',
         ],
       ],
-      "gateway" => "idigital",
-      "weight" => "-6",
+      'gateway' => 'log',
+      'weight' => '-6',
     ],
-    "glo_gateway" => [
-      "name" => "glo_gateway",
-      "enabled" => 0,
-      "description" => "",
-      "rules" => [
-        '_ALL_TRUE_' => '',
-        'number' => [
-          'op' => 'LK',
-          'neg' => '',
-          'exp' => '234705%,234805%,234807%,234815%,234811%',
-        ],
-      ],
-      "gateway" => "routesms",
-      "weight" => "-3",
-    ],
-    "spammers" => [
-      "name" => "spammers",
-      "enabled" => 1,
-      "description" => "Route to send spammers to debug gateway",
-      "rules" => [
-        '_ALL_TRUE_' => '1',
+    'spammers' => [
+      'name' => 'spammers',
+      'enabled' => 1,
+      'description' => 'Route to send spammers to debug gateway',
+      '_ALL_TRUE_' => '1',
+      'rules' => [
         'user' => [
-          'op' => 'IN',
-          'neg' => '',
-          'exp' => 'Godslovee, gur kimhi',
+          'operator' => 'IN',
+          'negated' => '',
+          'operand' => 'Godslovee, gur kimhi',
         ],
         'count' => [
-          'op' => 'GT',
-          'neg' => '',
-          'exp' => '20',
+          'operator' => 'GT',
+          'negated' => '',
+          'operand' => '20',
         ],
         'country' => [
-          'op' => 'EQ',
-          'neg' => '1',
-          'exp' => '234',
+          'operator' => 'EQ',
+          'negated' => '1',
+          'operand' => '234',
         ],
       ],
-      "gateway" => "debug",
-      "weight" => "-9",
+      'gateway' => 'debug',
+      'weight' => '-9',
     ],
-    "international" => [
-      "name" => "international",
-      "enabled" => 1,
-      "description" => "International SMS through 42tele",
-      "rules" => [
-        '_ALL_TRUE_' => '',
+    'international' => [
+      'name' => 'international',
+      'enabled' => 1,
+      'description' => 'International SMS through llamas',
+      '_ALL_TRUE_' => '',
+      'rules' => [
         'country' => [
-          'op' => 'EQ',
-          'neg' => '1',
-          'exp' => '234',
+          'operator' => 'EQ',
+          'negated' => '1',
+          'operand' => '234',
         ],
-      ],
-      "gateway" => "42tele",
-      "weight" => "-5",
-    ],
-    "routesms_test" => [
-      "name" => "routesms_test",
-      "enabled" => 1,
-      "description" => "Tests routesms gateway by passing all webmaster's traffic through it.",
-      "rules" => [
-        '_ALL_TRUE_' => '1',
         'user' => [
-          'op' => 'EQ',
-          'neg' => '',
-          'exp' => 'nattah',
+          'operator' => 'EQ',
+          'negated' => '',
+          'operand' => 'boku',
         ],
       ],
-      "gateway" => "42tele",
-      "weight" => "-10",
-    ],
-    "boku_app" => [
-      "name" => "boku_app",
-      "enabled" => 1,
-      "description" => "Allow BokuApp through Infobip",
-      "rules" => [
-        '_ALL_TRUE_' => '',
-        'user' => [
-          'op' => 'EQ',
-          'neg' => '',
-          'exp' => 'boku',
-        ],
-      ],
-      "gateway" => "infobip",
-      "weight" => "-10",
+      'gateway' => 'llamas',
+      'weight' => '-5',
     ],
   ];
 
+  protected static $all_numbers = [
+    '2348191234500', '2342342342342', '2343453453453', '9879879897987',
+    '2348191234500', '2342342342342', '2343453453453', '9879879897987',
+    '2348191234500', '2342342342342', '2343453453453', '9879879897987',
+    '2348191234500', '2342342342342', '2343453453453', '9879879897987',
+  ];
+
+}
+
+class TestSmsRoutingRuleset extends SmsRoutingRuleset {
+
+  public function __construct(array $values) {
+    parent::__construct($values, 'sms_routing_ruleset');
+    $this->random = new Random();
+    $this->rules = $this->objectifyRules($values['rules']);
+  }
+
+  public function getRules() {
+    return $this->rules;
+  }
+
+  protected function objectifyRules($rules) {
+    $rule_objects = [];
+    foreach ($rules as $type => $rule) {
+      $rule_objects[$type] = $this->createPluginInstance($type, $rule);
+    }
+    return $rule_objects;
+  }
+  
+  protected function createPluginInstance($plugin_id, array $configuration) {
+    $configuration += $this->defaultConfiguration;
+    $configuration['name'] = $this->random->name();
+    $plugin_definition = [
+      'label' => $this->random->word(3),
+      'description' => $this->random->sentences(3),
+    ];
+    switch ($plugin_id) {
+      case 'area':
+        return new Area($configuration, $plugin_id, $plugin_definition);
+      case 'country':
+        return new Country($configuration, $plugin_id, $plugin_definition);
+      case 'number':
+        return new Number($configuration, $plugin_id, $plugin_definition);
+      case 'count':
+        return new Recipients($configuration, $plugin_id, $plugin_definition);
+      case 'sender':
+        return new Sender($configuration, $plugin_id, $plugin_definition);
+      case 'sendtime':
+        return new Sendtime($configuration, $plugin_id, $plugin_definition);
+      case 'user':
+        return new User($configuration, $plugin_id, $plugin_definition);
+    }
+  }
+  
+  protected $defaultConfiguration = [
+    'enabled' => TRUE,
+    'operator' => SmsRoutingRulePluginBase::EQ,
+    'operand' => '',
+    'negated' => FALSE,
+  ];
+  
+  protected $random;
+  
 }

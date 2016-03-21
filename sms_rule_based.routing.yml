@@ -7,7 +7,7 @@ sms_rule_based.admin_settings:
     _permission: 'administer rule-based routing'
 
 entity.sms_routing_ruleset.list:
-  path: '/admin/config/sms_rule_based/ruleset'
+  path: '/admin/config/sms_rule_based/rulesets'
   defaults:
     _title: 'Routing Rulesets'
     _entity_list: sms_routing_ruleset
@@ -25,8 +25,7 @@ entity.sms_routing_ruleset.add_form:
 entity.sms_routing_ruleset.edit_form:
   path: '/admin/config/sms_rule_based/ruleset/edit/{sms_routing_ruleset}'
   defaults:
-    _title: 'Routing rulesets (@ruleset_name)'
-#    _title_context: ''
+    _title: 'Routing rulesets'
     _entity_form: sms_routing_ruleset.default
   requirements:
     _permission: 'administer rule-based routing'
@@ -34,7 +33,7 @@ entity.sms_routing_ruleset.edit_form:
 entity.sms_routing_ruleset.delete_form:
   path: '/admin/config/sms_rule_based/ruleset/delete/{sms_routing_ruleset}'
   defaults:
-    _title: 'Delete ruleset (@ruleset_name)'
+    _title: 'Delete ruleset'
     _entity_form: sms_routing_ruleset.delete
   requirements:
     _permission: 'administer rule-based routing'
