@@ -25,7 +25,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
 
   public static $modules = ['sms', 'sms_test_gateway', 'sms_rule_based'];
 
-  public function testRuleBasedRoutingRules() {
+  public function testRuleBasedRoutingRulesForm() {
     $user = $this->drupalCreateUser(['administer rule-based routing']);
     $this->drupalLogin($user);
     $this->drupalGet(new Url('entity.sms_routing_ruleset.list'));
@@ -128,6 +128,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $ruleset1 = SmsRoutingRuleset::create([
       'name' => $this->randomMachineName(),
       'label' => $this->randomString(),
+      'description' => 'Number based ruleset',
       'weight' => -2,
       'enabled' => TRUE,
       'gateway' => $gateway1->id(),
@@ -145,6 +146,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $ruleset2 = SmsRoutingRuleset::create([
       'name' => $this->randomMachineName(),
       'label' => $this->randomString(),
+      'description' => 'Number based ruleset',
       'weight' => -2,
       'enabled' => TRUE,
       'gateway' => $gateway2->id(),
@@ -162,6 +164,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $ruleset3 = SmsRoutingRuleset::create([
       'name' => $this->randomMachineName(),
       'label' => $this->randomString(),
+      'description' => 'Number based ruleset',
       'weight' => -2,
       'enabled' => TRUE,
       'gateway' => $gateway3->id(),
@@ -192,6 +195,92 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $messages3 = $this->getTestMessages($gateway3);
     $this->assertEqual(1, count($messages3));
     $this->assertEqual($messages3[0]->getRecipients(), [$number3]);
+
+    // Add a new ruleset for messages created by user 6.
+    $gateway4 = $this->createMemoryGateway();
+    $ruleset4 = SmsRoutingRuleset::create([
+      'name' => $this->randomMachineName(),
+      'label' => $this->randomString(),
+      'description' => 'User based ruleset',
+      'weight' => -4,
+      'enabled' => TRUE,
+      'gateway' => $gateway4->id(),
+      'rules' => [
+        'test_rule' => [
+          'type' => 'user',
+          'operator' => SmsRoutingRulePluginBase::EQ,
+          'operand' => '6',
+          'negated' => FALSE,
+        ]
+      ],
+    ]);
+    $ruleset4->save();
+    // Send new message and ensure it goes to uses the gateway specified
+    $this->resetTestMessages();
+    $messages4 = $this->getTestMessages($gateway4);
+    $this->assertEqual(0, count($messages4));
+    $sms_message = new SmsMessage('sender', [$number1, $number2, $number3], 'test message', [], 6);
+    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    $messages4 = $this->getTestMessages($gateway4);
+    $this->assertEqual(1, count($messages4));
+    $this->assertEqual($messages4[0]->getRecipients(), [$number1, $number2, $number3]);
   }
+
+  public function testRulesetOrderWeight() {
+    $gateway1 = $this->createMemoryGateway();
+    $gateway2 = $this->createMemoryGateway();
+
+    // Test that the lower weight gateway wins.
+    $number = '2342342342345';
+    $ruleset1 = SmsRoutingRuleset::create([
+      'name' => $this->randomMachineName(),
+      'label' => $this->randomString(),
+      'weight' => -2,
+      'enabled' => TRUE,
+      'gateway' => $gateway1->id(),
+      'rules' => [
+        'test_rule' => [
+          'type' => 'number',
+          'operator' => SmsRoutingRulePluginBase::EQ,
+          'operand' => $number,
+          'negated' => FALSE,
+        ]
+      ],
+    ]);
+    $ruleset1->save();
+    $ruleset2 = SmsRoutingRuleset::create([
+      'name' => $this->randomMachineName(),
+      'label' => $this->randomString(),
+      'weight' => -1,
+      'enabled' => TRUE,
+      'gateway' => $gateway2->id(),
+      'rules' => [
+        'test_rule' => [
+          'type' => 'country',
+          'operator' => SmsRoutingRulePluginBase::EQ,
+          'operand' => '234',
+          'negated' => FALSE,
+        ]
+      ],
+    ]);
+    $ruleset2->save();
+    $this->resetTestMessages();
+    $sms_message = new SmsMessage('sender', [$number], 'test message', []);
+    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    $this->assertEqual(1, count($this->getTestMessages($gateway1)));
+    $this->assertEqual(0, count($this->getTestMessages($gateway2)));
+
+    // Change the ruleset weight and verify that the routing has changed.
+    $ruleset1->set('weight', 1)->save();
+    $this->resetTestMessages();
+    $sms_message = new SmsMessage('sender', [$number], 'test message', []);
+    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    $this->assertEqual(0, count($this->getTestMessages($gateway1)));
+    $this->assertEqual(1, count($this->getTestMessages($gateway2)));
+  }
+
+  /**
+   * @todo More tests to check proper error handling and user-friendly messages.
+   */
 
 }

@@ -82,6 +82,11 @@ class RuleBasedSmsRouter {
    *   via that gateway based on specified rulesets.
    */
   protected function matchRoute($rules, array &$numbers, $context, $all_true = FALSE) {
+    // No need to attempt matching if there are no numbers.
+    if (empty($numbers)) {
+      return [];
+    }
+
     // Run through all the rules, remove numbers that match the rules from the
     // $numbers array and add to the return array.
     // Different code paths needed for all rules being true (conjunction) and

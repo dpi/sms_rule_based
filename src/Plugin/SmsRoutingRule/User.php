@@ -53,7 +53,7 @@ class User extends SmsRoutingRulePluginBase {
    * {@inheritdoc}
    */
   public function match(array $numbers, array $context) {
-    return $this->satisfiesExpression(UserEntity::load($context['uid'])) ? $numbers : array();
+    return $this->satisfiesExpression($context['uid']) ? $numbers : array();
   }
 
   /**
