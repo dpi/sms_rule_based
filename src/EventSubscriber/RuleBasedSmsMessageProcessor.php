@@ -14,21 +14,25 @@ class RuleBasedSmsMessageProcessor implements EventSubscriberInterface {
     $result = [];
 
     foreach ($event->getMessages() as &$sms) {
-      $routing = $this->routeMessage($sms);
-
       $base = $sms instanceof SmsMessageInterface ? $sms->createDuplicate() : (clone $sms);
       $base->removeRecipients($sms->getRecipients());
 
+      $routing = $this->routeMessage($sms);
       foreach ($routing['routes'] as $gateway_id => $numbers) {
-        if ($numbers) {
-          $new = $base instanceof SmsMessageInterface ? $base->createDuplicate() : (clone $base);
-          $new->addRecipients($numbers);
-          if ($gateway_id != '__default__') {
-            $new->setGateway(SmsGateway::load($gateway_id));;
-          }
-
-          $result[] = $new;
+        if (!count($numbers)) {
+          continue;
         }
+
+        $new = $base instanceof SmsMessageInterface ? $base->createDuplicate() : (clone $base);
+        $new->addRecipients($numbers);
+
+        // Dont add a gateway, SmsMessageProcessor::ensureGateways will fill in
+        // the blanks.
+        if ($gateway_id != '__default__') {
+          $new->setGateway(SmsGateway::load($gateway_id));;
+        }
+
+        $result[] = $new;
       }
     }
 
@@ -70,6 +74,7 @@ class RuleBasedSmsMessageProcessor implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
+    // 1025 is handled BEFORE 1024. (higher number = earlier).
     $events['sms.message.preprocess'][] = ['ruleBased', 1025];
     return $events;
   }
