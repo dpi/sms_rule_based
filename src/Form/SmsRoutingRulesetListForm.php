@@ -147,7 +147,7 @@ class SmsRoutingRulesetListForm extends DraggableListBuilder {
    * @return \Drupal\sms_rule_based\Provider\RuleBasedSmsProvider
    */
   protected function smsProvider() {
-    return \Drupal::service('sms_provider.rule_based');
+    return \Drupal::service('sms_provider');
   }
 
 }

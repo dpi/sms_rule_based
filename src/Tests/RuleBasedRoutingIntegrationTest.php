@@ -180,7 +180,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $ruleset3->save();
 
     $sms_message = new SmsMessage('sender', [$number1, $number2, $number3], 'test message');
-    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    \Drupal::service('sms_provider')->send($sms_message);
 
     // Verify correct routing. Each gateway should receive exactly one message
     // to the specific recipient.
@@ -220,7 +220,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $messages4 = $this->getTestMessages($gateway4);
     $this->assertEqual(0, count($messages4));
     $sms_message = new SmsMessage('sender', [$number1, $number2, $number3], 'test message', [], 6);
-    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    \Drupal::service('sms_provider')->send($sms_message);
     $messages4 = $this->getTestMessages($gateway4);
     $this->assertEqual(1, count($messages4));
     $this->assertEqual($messages4[0]->getRecipients(), [$number1, $number2, $number3]);
@@ -266,7 +266,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $ruleset2->save();
     $this->resetTestMessages();
     $sms_message = new SmsMessage('sender', [$number], 'test message', []);
-    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    \Drupal::service('sms_provider')->send($sms_message);
     $this->assertEqual(1, count($this->getTestMessages($gateway1)));
     $this->assertEqual(0, count($this->getTestMessages($gateway2)));
 
@@ -274,7 +274,7 @@ class RuleBasedRoutingIntegrationTest extends WebTestBase {
     $ruleset1->set('weight', 1)->save();
     $this->resetTestMessages();
     $sms_message = new SmsMessage('sender', [$number], 'test message', []);
-    \Drupal::service('sms_provider.rule_based')->send($sms_message);
+    \Drupal::service('sms_provider')->send($sms_message);
     $this->assertEqual(0, count($this->getTestMessages($gateway1)));
     $this->assertEqual(1, count($this->getTestMessages($gateway2)));
   }

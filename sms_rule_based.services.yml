@@ -11,5 +11,10 @@ services:
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
 
   # Override the default sms_provider alias.
-  sms_provider:
-    alias: sms_provider.rule_based
+#  sms_provider:
+#    alias: sms_provider.rule_based
+
+  sms.rule_based_processor:
+    class: Drupal\sms_rule_based\EventSubscriber\RuleBasedSmsMessageProcessor
+    tags:
+      - { name: event_subscriber }
