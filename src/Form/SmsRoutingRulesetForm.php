@@ -91,7 +91,7 @@ class SmsRoutingRulesetForm extends EntityForm {
       '#type' => 'select',
       '#title' => t('Gateway'),
       '#options' => $options,
-      '#default_value' => $gateway ?: \Drupal::service('sms_provider.rule_based')->getDefaultGateway()->id(),
+      '#default_value' => $gateway ?: \Drupal::service('sms_provider')->getDefaultGateway()->id(),
     );
 
     $form['weight'] = array(
